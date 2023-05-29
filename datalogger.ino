@@ -8,11 +8,12 @@
 #include <DallasTemperature.h>
 #include <DS3232RTC.h>
 
+// Define Arduino pins and module types
 #define PIN_WATCHDOG A1
 #define PIN_DHT A2
 #define DHTTYPE DHT22
 
-// Variables used in Setup() and Loop()
+// Variables used in both Setup() and Loop()
 byte mac[] = { 0x54, 0x10, 0xEC, 0x3C, 0x67, 0x2B };
 const int packet_size = 48;
 const int sample_size = 9;
@@ -24,9 +25,12 @@ EthernetClient client;
 EthernetUDP Udp;
 
 void setup() {
-  resetWatchdog();
 
+  // Set watchdog pin to output
   pinMode(PIN_WATCHDOG, OUTPUT);
+
+  // Reset watchdog module
+  resetWatchdog();
 
   unsigned long seventyYears = 2208988800UL;
   unsigned long highWord;
@@ -47,12 +51,14 @@ void setup() {
   Dns.begin(Ethernet.dnsServerIP());
   Udp.begin(localPort);
   
+  // Resolve ntp server domain name to IP
   while (!Dns.getHostByName(ntp_pool_server, timeServer))
   {
     delay(5000);
     Dns.getHostByName(ntp_pool_server, timeServer);
   }
 
+  // Send NTP packat, retry until successful
   sendNTPpacket(timeServer);
   delay(5000);
   while (!Udp.parsePacket()) {
@@ -60,6 +66,7 @@ void setup() {
     delay(5000);
   } 
 
+  // Read NTP packet, convert to epoch time, and set RTC module
   Udp.read(packetBuffer, packet_size);
   highWord = word(packetBuffer[40], packetBuffer[41]);
   lowWord = word(packetBuffer[42], packetBuffer[43]);
@@ -69,21 +76,23 @@ void setup() {
 }
 
 void loop() {
-  
-  resetWatchdog();
 
+  // Reset watchdog module
+  resetWatchdog();
+  
   int server_room_channel = 0000000;
   char *server_room_control_key = "XXXXXXXXXXXXXXXX";
   int humiditiy_calibration = 5;
   int selected_element = 4;
-  int sent_to_thingspeak = 0;
   float temperature_readings[sample_size];
   float humidity_readings[sample_size];
   tmElements_t tm;
 
+  // Initialize ThingSpeak and the DHT module
   ThingSpeak.begin(client);
   dht.begin();
 
+  // Read RTC time, get data samples, send median values to ThingSpeak
   RTC.read(tm);
   if (tm.Minute == 00)
   {
@@ -101,12 +110,14 @@ void loop() {
   }
 }
 
+// Reset watchdog module
 void resetWatchdog() {
   digitalWrite(PIN_WATCHDOG, HIGH);
   delay(20);
   digitalWrite(PIN_WATCHDOG, LOW);
 }
 
+// Send NTP packet
 unsigned long sendNTPpacket(IPAddress& address)
 {
   memset(packetBuffer, 0, packet_size); 
@@ -123,7 +134,7 @@ unsigned long sendNTPpacket(IPAddress& address)
   Udp.endPacket();
 }
 
-// qsort sort function
+// Qsort sort function
 int sort_desc(const void *cmp1, const void *cmp2)
 {
   sort_desc_cmp1 = *((float *)cmp1);

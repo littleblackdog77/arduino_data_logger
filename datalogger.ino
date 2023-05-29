@@ -16,8 +16,6 @@
 // Variables used in both Setup() and Loop()
 const int packet_size = 48;
 const int sample_size = 9;
-float sort_desc_cmp1;
-float sort_desc_cmp2;
 byte packetBuffer[packet_size];
 DHT dht(PIN_DHT,DHTTYPE);
 EthernetClient client;
@@ -137,7 +135,7 @@ unsigned long sendNTPpacket(IPAddress& address)
 // Qsort sort function
 int sort_desc(const void *cmp1, const void *cmp2)
 {
-  sort_desc_cmp1 = *((float *)cmp1);
-  sort_desc_cmp2 = *((float *)cmp2);
+  float sort_desc_cmp1 = *((float *)cmp1);
+  float sort_desc_cmp2 = *((float *)cmp2);
   return sort_desc_cmp1 > sort_desc_cmp2 ? -1 : (sort_desc_cmp1 < sort_desc_cmp2 ? 1 : 0);
 }

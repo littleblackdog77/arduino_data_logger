@@ -14,7 +14,6 @@
 #define DHTTYPE DHT22
 
 // Variables used in both Setup() and Loop()
-byte mac[] = { 0x54, 0x10, 0xEC, 0x3C, 0x67, 0x2B };
 const int packet_size = 48;
 const int sample_size = 9;
 float sort_desc_cmp1;
@@ -32,6 +31,7 @@ void setup() {
   // Reset watchdog module
   resetWatchdog();
 
+  byte mac[] = { 0x54, 0x10, 0xEC, 0x3C, 0x67, 0x2B };
   unsigned long seventyYears = 2208988800UL;
   unsigned long highWord;
   unsigned long lowWord;

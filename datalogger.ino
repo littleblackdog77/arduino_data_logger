@@ -28,8 +28,6 @@ void setup() {
 
   pinMode(PIN_WATCHDOG, OUTPUT);
 
-  Serial.begin(9600);
-
   unsigned long seventyYears = 2208988800UL;
   unsigned long highWord;
   unsigned long lowWord;
@@ -43,11 +41,6 @@ void setup() {
   IPAddress subnet(255, 255, 255, 0);
   DNSClient Dns;
   IPAddress timeServer;
-
-Serial.println(ip);
-Serial.println(dns);
-Serial.println(gateway);
-Serial.println(subnet);
 
   // Initialize networking
   Ethernet.begin(mac, ip, dns, gateway, subnet);
@@ -77,6 +70,8 @@ Serial.println(subnet);
 }
 
 void loop() {
+  
+  resetWatchdog();
 
   int server_room_channel = 0000000;
   char *server_room_control_key = "XXXXXXXXXXXXXXXX";
@@ -89,8 +84,6 @@ void loop() {
 
   ThingSpeak.begin(client);
   dht.begin();
-
-  resetWatchdog();
 
   RTC.read(tm);
     if (tm.Minute == 00)

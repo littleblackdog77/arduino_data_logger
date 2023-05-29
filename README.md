@@ -9,6 +9,6 @@ I am not claiming this work as soley mine. Portions of code have been taken from
 
 Output
 
-![temperature grph](https://ibb.co/gSMqdMP)
+![temperature grph](https://i.ibb.co/VgWnxWQ/temp.png "Temperature Graph")
 
-![humidity graph](https://ibb.co/6r4WbG1)
+![humidity graph](https://i.ibb.co/XjzCp63/humid.png "Humidity Graph")

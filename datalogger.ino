@@ -52,7 +52,6 @@ void setup() {
     delay(5000);
     Dns.getHostByName(ntp_pool_server, timeServer);
   }
-  Serial.println(timeServer);
 
   sendNTPpacket(timeServer);
   delay(5000);
@@ -86,35 +85,19 @@ void loop() {
   dht.begin();
 
   RTC.read(tm);
-    if (tm.Minute == 00)
+  if (tm.Minute == 00)
   {
-    if (sent_to_thingspeak == 0)
-    {
-      // Read from sensor
-      for (int t = 0; t < sample_size; t++) {
-        temperature_readings[t] = dht.readTemperature();
-        humidity_readings[t] = dht.readHumidity() + humiditiy_calibration;
-        delay(3000);
-      }
-
-      // Sorting temperature and humidity arrays
-      qsort(temperature_readings, sizeof(temperature_readings) / sizeof(temperature_readings[0]), sizeof(temperature_readings[0]), sort_desc);
-      qsort(humidity_readings, sizeof(humidity_readings) / sizeof(humidity_readings[0]), sizeof(humidity_readings[0]), sort_desc);
-
-      ThingSpeak.setField(1, temperature_readings[selected_element]);
-      ThingSpeak.setField(2, humidity_readings[selected_element]);
-      ThingSpeak.writeFields(server_room_channel, server_room_control_key);
-
-      sent_to_thingspeak = 1; 
+    for (int t = 0; t < sample_size; t++) {
+      temperature_readings[t] = dht.readTemperature();
+      humidity_readings[t] = dht.readHumidity() + humiditiy_calibration;
+      delay(10000);
     }
-  } 
-  else 
-  {
-    if (sent_to_thingspeak == 1) 
-    {
-      // Clear sent flag
-      sent_to_thingspeak = 0;  
-    }
+    // Sorting temperature and humidity arrays
+    qsort(temperature_readings, sizeof(temperature_readings) / sizeof(temperature_readings[0]), sizeof(temperature_readings[0]), sort_desc);
+    qsort(humidity_readings, sizeof(humidity_readings) / sizeof(humidity_readings[0]), sizeof(humidity_readings[0]), sort_desc);
+    ThingSpeak.setField(1, temperature_readings[selected_element]);
+    ThingSpeak.setField(2, humidity_readings[selected_element]);
+    ThingSpeak.writeFields(server_room_channel, server_room_control_key);
   }
 }
 

@@ -27,7 +27,7 @@ void setup() {
   unsigned long lowWord;
   unsigned long secsSince1900;
   unsigned long epoch;
-  const char ntp_pool_server = "0.au.pool.ntp.org";
+  const char *ntp_pool_server = "0.au.pool.ntp.org";
   const int localPort = 80;
   IPAddress ip(192, 168, 0, 1);
   IPAddress dns(192, 168, 0, 254);

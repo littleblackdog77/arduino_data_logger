@@ -21,14 +21,14 @@ EthernetClient client;
 EthernetUDP Udp;
 
 void setup() {
-  byte mac[] = { 0x54, 0x10, 0xEC, 0x3C, 0x67, 0x2B };
-  unsigned long seventyYears = 2208988800UL;
+  const byte mac[] = { 0x54, 0x10, 0xEC, 0x3C, 0x67, 0x2B };
+  const unsigned long seventyYears = 2208988800UL;
   unsigned long highWord;
   unsigned long lowWord;
   unsigned long secsSince1900;
   unsigned long epoch;
-  char *ntp_pool_server = "pool.ntp.org";
-  int localPort = 80;
+  const char ntp_pool_server = "0.au.pool.ntp.org";
+  const int localPort = 80;
   IPAddress ip(192, 168, 0, 1);
   IPAddress dns(192, 168, 0, 254);
   IPAddress gateway(192, 168, 0, 254);
@@ -79,22 +79,24 @@ void loop() {
   // Reset watchdog module
   resetWatchdog();
   
-  int server_room_channel = <thingspeak channel key>;
-  char *server_room_control_key = "<thingspeak room key>";
-  int humiditiy_calibration = 5;
-  int selected_element_min = 4;
-  int selected_element_max = 5;
-  float temperature_readings[10];
-  float humidity_readings[10];
+  const int max_samples = 10;
+  const unsigned long server_room_channel = <thingspeak channel key>;
+  const char server_room_control_key = "<thingspeak room key>";
+  const float humiditiy_calibration = 5;
+  const int selected_element_min = 4;
+  const int selected_element_max = 5;
+  float temperature_readings[max_samples];
+  float humidity_readings[max_samples];
   tmElements_t tm;
+  
 
   // Read RTC time, get data samples, send median values to ThingSpeak
   RTC.read(tm);
   if ((tm.Minute == 00 && tm.Second == 00) || (tm.Minute == 30 && tm.Second == 00))
   {
-    for (int t = 0; t < 10; t++) {
-      temperature_readings[t] = dht.readTemperature();
-      humidity_readings[t] = dht.readHumidity() + humiditiy_calibration;
+    for (size_t sample = 0; sample < max_samples; sample++) {
+      temperature_readings[sample] = dht.readTemperature();
+      humidity_readings[sample] = dht.readHumidity() + humiditiy_calibration;
       delay(370);
 
     }

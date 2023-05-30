@@ -94,7 +94,7 @@ void loop() {
   RTC.read(tm);
   
   // Run at minute 00 or minute 30, get data samples, send median values to ThingSpeak
-  if (tm.Minute == 00 || 30)
+  if (tm.Minute == 00 || tm.Minute == 30)
   {
     for (int t = 0; t < sample_size; t++) {
       temperature_readings[t] = dht.readTemperature();

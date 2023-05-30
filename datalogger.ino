@@ -92,7 +92,7 @@ void loop() {
   RTC.read(tm);
   if ((tm.Minute == 00 && tm.Second == 00) || (tm.Minute == 30 && tm.Second == 00))
   {
-    for (int t = 0; t < sample_size; t++) {
+    for (int t = 0; t < 10; t++) {
       temperature_readings[t] = dht.readTemperature();
       humidity_readings[t] = dht.readHumidity() + humiditiy_calibration;
       delay(370);

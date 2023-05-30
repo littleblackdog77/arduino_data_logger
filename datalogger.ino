@@ -21,6 +21,7 @@ EthernetClient client;
 EthernetUDP Udp;
 
 void setup() {
+  Serial.begin(9600);
   const byte mac[] = { 0x54, 0x10, 0xEC, 0x3C, 0x67, 0x2B };
   const unsigned long seventyYears = 2208988800UL;
   unsigned long highWord;
@@ -56,7 +57,6 @@ void setup() {
     delay(5000);
     Dns.getHostByName(ntp_pool_server, timeServer);
   }
-
   // Send NTP packat, retry until successful
   sendNTPpacket(timeServer);
   delay(5000);
@@ -89,7 +89,6 @@ void loop() {
   float humidity_readings[max_samples];
   tmElements_t tm;
   
-
   // Read RTC time, get data samples, send median values to ThingSpeak
   RTC.read(tm);
   if ((tm.Minute == 00 && tm.Second == 00) || (tm.Minute == 30 && tm.Second == 00))
@@ -98,14 +97,15 @@ void loop() {
       temperature_readings[sample] = dht.readTemperature();
       humidity_readings[sample] = dht.readHumidity() + humiditiy_calibration;
       delay(370);
-
     }
     // Sorting temperature and humidity arrays, using median values as the DHT sensor can produce abnormal readings
     qsort(temperature_readings, sizeof(temperature_readings) / sizeof(temperature_readings[0]), sizeof(temperature_readings[0]), sort_desc);
     qsort(humidity_readings, sizeof(humidity_readings) / sizeof(humidity_readings[0]), sizeof(humidity_readings[0]), sort_desc);
     ThingSpeak.setField(1, (temperature_readings[selected_element_min] + temperature_readings[selected_element_max]) / 2);
     ThingSpeak.setField(2, (humidity_readings[selected_element_min] + humidity_readings[selected_element_max]) / 2);
-    ThingSpeak.writeFields(server_room_channel, server_room_control_key);
+    int ts_return_code = ThingSpeak.writeFields(server_room_channel, server_room_control_key);
+    Serial.print("ThingSpeak return code: ");
+    Serial.println(ts_return_code);
   }
 }
 

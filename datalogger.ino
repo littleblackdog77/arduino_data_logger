@@ -90,9 +90,11 @@ void loop() {
   ThingSpeak.begin(client);
   dht.begin();
 
-  // Read RTC time, get data samples, send median values to ThingSpeak
+  // Read RTC time
   RTC.read(tm);
-  if (tm.Minute == 00)
+  
+  // Run at minute 00 or minute 30, get data samples, send median values to ThingSpeak
+  if (tm.Minute == 00 || 30)
   {
     for (int t = 0; t < sample_size; t++) {
       temperature_readings[t] = dht.readTemperature();

@@ -15,20 +15,12 @@
 
 // Variables used in both Setup() and Loop()
 const int packet_size = 48;
-const int sample_size = 9;
 byte packetBuffer[packet_size];
 DHT dht(PIN_DHT,DHTTYPE);
 EthernetClient client;
 EthernetUDP Udp;
 
 void setup() {
-
-  // Set watchdog pin to output
-  pinMode(PIN_WATCHDOG, OUTPUT);
-
-  // Reset watchdog module
-  resetWatchdog();
-
   byte mac[] = { 0x54, 0x10, 0xEC, 0x3C, 0x67, 0x2B };
   unsigned long seventyYears = 2208988800UL;
   unsigned long highWord;
@@ -44,10 +36,19 @@ void setup() {
   DNSClient Dns;
   IPAddress timeServer;
 
+  // Initialize ThingSpeak and the DHT module
+  ThingSpeak.begin(client);
+  dht.begin();
   // Initialize networking
   Ethernet.begin(mac, ip, dns, gateway, subnet);
   Dns.begin(Ethernet.dnsServerIP());
   Udp.begin(localPort);
+
+  // Set watchdog pin to output
+  pinMode(PIN_WATCHDOG, OUTPUT);
+
+  // Reset watchdog module
+  resetWatchdog();
   
   // Resolve ntp server domain name to IP
   while (!Dns.getHostByName(ntp_pool_server, timeServer))
@@ -78,34 +79,30 @@ void loop() {
   // Reset watchdog module
   resetWatchdog();
   
-  int server_room_channel = 0000000;
-  char *server_room_control_key = "XXXXXXXXXXXXXXXX";
+  int server_room_channel = <thingspeak channel key>;
+  char *server_room_control_key = "<thingspeak room key>";
   int humiditiy_calibration = 5;
-  int selected_element = 4;
-  float temperature_readings[sample_size];
-  float humidity_readings[sample_size];
+  int selected_element_min = 4;
+  int selected_element_max = 5;
+  float temperature_readings[10];
+  float humidity_readings[10];
   tmElements_t tm;
 
-  // Initialize ThingSpeak and the DHT module
-  ThingSpeak.begin(client);
-  dht.begin();
-
-  // Read RTC time
+  // Read RTC time, get data samples, send median values to ThingSpeak
   RTC.read(tm);
-  
-  // Run at minute 00 or minute 30, get data samples, send median values to ThingSpeak
-  if (tm.Minute == 00 || tm.Minute == 30)
+  if ((tm.Minute == 00 && tm.Second == 00) || (tm.Minute == 30 && tm.Second == 00))
   {
     for (int t = 0; t < sample_size; t++) {
       temperature_readings[t] = dht.readTemperature();
       humidity_readings[t] = dht.readHumidity() + humiditiy_calibration;
-      delay(10000);
+      delay(370);
+
     }
-    // Sorting temperature and humidity arrays
+    // Sorting temperature and humidity arrays, using median values as the DHT sensor can produce abnormal readings
     qsort(temperature_readings, sizeof(temperature_readings) / sizeof(temperature_readings[0]), sizeof(temperature_readings[0]), sort_desc);
     qsort(humidity_readings, sizeof(humidity_readings) / sizeof(humidity_readings[0]), sizeof(humidity_readings[0]), sort_desc);
-    ThingSpeak.setField(1, temperature_readings[selected_element]);
-    ThingSpeak.setField(2, humidity_readings[selected_element]);
+    ThingSpeak.setField(1, (temperature_readings[selected_element_min] + temperature_readings[selected_element_max]) / 2);
+    ThingSpeak.setField(2, (humidity_readings[selected_element_min] + humidity_readings[selected_element_max]) / 2);
     ThingSpeak.writeFields(server_room_channel, server_room_control_key);
   }
 }

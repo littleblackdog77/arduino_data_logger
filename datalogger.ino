@@ -8,12 +8,12 @@
 #include <DallasTemperature.h>
 #include <DS3232RTC.h>
 
-// Define Arduino pins and module types
+// define Arduino pins and module types
 #define PIN_WATCHDOG A1
 #define PIN_DHT A2
 #define DHTTYPE DHT22
 
-// Variables used in both Setup() and Loop()
+// variables used in both Setup() and Loop()
 const int packet_size = 48;
 byte packetBuffer[packet_size];
 DHT dht(PIN_DHT,DHTTYPE);
@@ -21,7 +21,9 @@ EthernetClient client;
 EthernetUDP Udp;
 
 void setup() {
+  
   Serial.begin(9600);
+  
   const byte mac[] = { 0x54, 0x10, 0xEC, 0x3C, 0x67, 0x2B };
   const unsigned long seventyYears = 2208988800UL;
   unsigned long highWord;
@@ -37,35 +39,34 @@ void setup() {
   DNSClient Dns;
   IPAddress timeServer;
 
-  // Initialize ThingSpeak and the DHT module
+  // initialize ThingSpeak and the DHT module
   ThingSpeak.begin(client);
   dht.begin();
-  // Initialize networking
+  
+  // initialize networking
   Ethernet.begin(mac, ip, dns, gateway, subnet);
   Dns.begin(Ethernet.dnsServerIP());
   Udp.begin(localPort);
 
-  // Set watchdog pin to output
+  // set watchdog pin to output
   pinMode(PIN_WATCHDOG, OUTPUT);
 
-  // Reset watchdog module
+  // reset watchdog module
   resetWatchdog();
   
-  // Resolve ntp server domain name to IP
+  // resolve ntp server domain name to IP
   while (!Dns.getHostByName(ntp_pool_server, timeServer))
   {
-    delay(5000);
+    delay(1000);
     Dns.getHostByName(ntp_pool_server, timeServer);
   }
-  // Send NTP packat, retry until successful
-  sendNTPpacket(timeServer);
-  delay(5000);
+  // send NTP packat, retry until successful
   while (!Udp.parsePacket()) {
+    delay(1000);
     sendNTPpacket(timeServer);
-    delay(5000);
   } 
 
-  // Read NTP packet, convert to epoch time, and set RTC module
+  // read NTP packet, convert to epoch time, and set RTC module
   Udp.read(packetBuffer, packet_size);
   highWord = word(packetBuffer[40], packetBuffer[41]);
   lowWord = word(packetBuffer[42], packetBuffer[43]);
@@ -76,33 +77,52 @@ void setup() {
 
 void loop() {
 
-  // Reset watchdog module
+  // reset watchdog module
   resetWatchdog();
   
   const int max_samples = 10;
   const unsigned long server_room_channel = <thingspeak channel key>;
   const char server_room_control_key = "<thingspeak room key>";
   const float humiditiy_calibration = 5;
-  const int selected_element_min = 4;
-  const int selected_element_max = 5;
   float temperature_readings[max_samples];
   float humidity_readings[max_samples];
+  float temperature_sample_median;
+  float humidity_sample_median;
   tmElements_t tm;
   
-  // Read RTC time, get data samples, send median values to ThingSpeak
+  // read RTC time, get data samples, send median values to ThingSpeak
   RTC.read(tm);
+
+  // run at 00m00s and 30m00s (twice an hour)
   if ((tm.Minute == 00 && tm.Second == 00) || (tm.Minute == 30 && tm.Second == 00))
   {
-    for (size_t sample = 0; sample < max_samples; sample++) {
+    // get samples up to max_samples
+    for (int sample = 0; sample < max_samples; sample++) {
       temperature_readings[sample] = dht.readTemperature();
       humidity_readings[sample] = dht.readHumidity() + humiditiy_calibration;
       delay(370);
     }
-    // Sorting temperature and humidity arrays, using median values as the DHT sensor can produce abnormal readings
+
+    // sorting temperature and humidity arrays, using median values as the DHT sensor can produce abnormal readings
     qsort(temperature_readings, sizeof(temperature_readings) / sizeof(temperature_readings[0]), sizeof(temperature_readings[0]), sort_desc);
     qsort(humidity_readings, sizeof(humidity_readings) / sizeof(humidity_readings[0]), sizeof(humidity_readings[0]), sort_desc);
-    ThingSpeak.setField(1, (temperature_readings[selected_element_min] + temperature_readings[selected_element_max]) / 2);
-    ThingSpeak.setField(2, (humidity_readings[selected_element_min] + humidity_readings[selected_element_max]) / 2);
+
+    // if max_samples is even
+    if (max_samples % 2 == 0)
+    {
+        temperature_sample_median = (temperature_readings[max_samples / 2 - 1] + temperature_readings[max_samples / 2]) / 2;
+        humidity_sample_median = (humidity_readings[max_samples / 2 - 1] + humidity_readings[max_samples / 2]) / 2;
+    }
+    // if max_samples is odd
+    else 
+    {
+        temperature_sample_median = temperature_readings[max_samples / 2];
+        humidity_sample_median = humidity_readings[max_samples / 2];
+    }
+    
+    // send values to ThingSpeak
+    ThingSpeak.setField(1, temperature_sample_median);
+    ThingSpeak.setField(2, humidity_sample_median);
     int ts_return_code = ThingSpeak.writeFields(server_room_channel, server_room_control_key);
     Serial.print("ThingSpeak return code: ");
     Serial.println(ts_return_code);

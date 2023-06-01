@@ -7,6 +7,4 @@ arduino_data_loger is a datalogger based on an Arduino Uno with data sent to Thi
 
 # Libraries required for this project;
 
-DHT, OneWire, Wire, Ethernet, EthernetUdp, Dns, ThingSpeak, DallasTemperature, DS3232RTC.
-
-I am not claiming this work as soley mine. Portions of code have been taken from the Arduino website and others.
+DHT, Ethernet, EthernetUdp, Dns, ThingSpeak, DS3232RTC.

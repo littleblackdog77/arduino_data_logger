@@ -6,7 +6,7 @@ I'm learning C++. Things may or may not be correct. Use at your own risk!
 arduino_data_loger is a datalogger based on an Arduino Uno with data sent to ThingSpeak for reporting / analysis.
 
 # Hardware required
-- Arduino Uno or larger (it's very tight on an Uno, it wouldn't run on a smaller board)
+- Arduino Uno or larger (it's very tight on an Uno, it wouldn't run on a smaller board) with ethernet port
 - DHT22 temperature/humidity module
 - DS3232 compatible real time clock module
 - Watchdog timer module

@@ -12,3 +12,5 @@ DHT, Ethernet, EthernetUdp, Dns, ThingSpeak, DS3232RTC.
 # Output
 ![Temperature Graph](https://i.ibb.co/hgPqfxM/temp.png)
 ![Humidity Graph](https://i.ibb.co/yPzLwQQ/humid.png)
+![Temperature Meter](https://i.ibb.co/zx2kvx0/temp-meter.png)
+![Humidity Meter](https://i.ibb.co/D8ZYJ3p/humid-meter.png)

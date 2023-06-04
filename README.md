@@ -1,7 +1,7 @@
 # arduino_data_logger
 Arduino -> ThingSpeak Data Logger
 
-I'm learning C++. Things may or may not be correct. Use at your own risk!
+I'm learning C++. Forgive my bad coding :)
 
 arduino_data_loger is a datalogger based on an Arduino Uno with data sent to ThingSpeak for reporting / analysis.
 
